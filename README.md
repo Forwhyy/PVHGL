@@ -8,7 +8,7 @@ This repository contains the implementation of **Patient-Visit-Spanned Hypergrap
 ## 📁 Project Structure
 
 ```
-.
+
 ├── process_data.py                 # Preprocess raw EHR datasets 
 ├── main.py                         # Entry point for training and evaluation
 ├── convert_datasets_to_pygDataset.py # Convert datasets into hypergraph format
