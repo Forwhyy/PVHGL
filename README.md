@@ -74,7 +74,7 @@ You can modify hyperparameters and configuration inside `main.py` or add argumen
 
 The model is evaluated using standard metrics for multi-label classification, including:
 
-- weighted F1-score
+- Weighted F1-score
 - Recall
 
 Results are printed during training and logged using the `logger.py` module.
