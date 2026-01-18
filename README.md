@@ -83,7 +83,7 @@ Results are printed during training and logged using the `logger.py` module.
 
 ## 📌 Notes
 
-- Datasets are not included in this repository. Please download and prepare them according to instructions in `process_data.py` 
+- Datasets are not included in this repository due to the datasets’ privacy and usage restrictions. Please download and prepare them according to instructions in `process_data.py` 
 - Ensure correct formatting of EHR records before processing.
 
 ```
