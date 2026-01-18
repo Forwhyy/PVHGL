@@ -58,9 +58,8 @@ def main(args):
                   return_att=args.return_att).to(device)
 
 
-    # criterion = nn.NLLLoss()
-    # criterion = torch.nn.CrossEntropyLoss()
-    criterion = torch.nn.BCELoss(reduction='sum')
+    
+    criterion = torch.nn.BCELoss()
 
     # 评估指标
     if args.metric == 'recall':
@@ -96,13 +95,10 @@ def main(args):
             optimizer.zero_grad()
             if args.return_att:
                 out, visit_weights_per_patient,hyperedge_embeddings = model(args, dataset.graph['node_feat'], dataset.graph['adjs'], dataset.graph['H'],args.tau)
-                loss0 = criterion(out[train_idx], dataset.label[train_idx])
-                loss = loss0 / c
-
+                loss = criterion(out[train_idx], dataset.label[train_idx])
             else:
                 out = model(args, dataset.graph['node_feat'], dataset.graph['adjs'], dataset.graph['H'],args.tau)
-                loss0 = criterion(out[train_idx], dataset.label[train_idx])
-                loss = loss0 / c
+                loss = criterion(out[train_idx], dataset.label[train_idx])
 
             loss.backward()
             optimizer.step()
@@ -186,9 +182,10 @@ if __name__ == "__main__":
         save_model=False,
         model_dir="./saved_models/",
         records_length=r"/root/autodl-tmp/project/data/raw_data/mimic_iii_sorted/record_lengths.pkl",
-        cooccurrence=r"/root/autodl-tmp/project/data/raw_data/mimic_iii_sorted/modify_dia_coo_matrix.csv",
+        cooccurrence=r"/root/autodl-tmp/project/data/raw_data/mimic_iii_sorted/dia_coo_matrix.csv",
         feature_dim = 128,
         alpha = 0.2,
         return_att = False
     )
     main(args)
+
