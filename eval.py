@@ -65,7 +65,6 @@ def eval_w_f1(y_true, y_pred):
     return f1_score(y_true=y_true, y_pred=result, average='weighted', zero_division=0)
 
 def eval_f1(y_true, y_pred, threshold=0.5, average='micro'):
-    # 将张量转换为 NumPy 数组
     y_true = y_true.detach().cpu().numpy()
     y_pred = (y_pred.sigmoid().detach().cpu().numpy() > threshold).astype(int)  # 转换为二进制分类结果
 
@@ -92,17 +91,11 @@ def evaluate(model, dataset, split_idx, eval_func, criterion, args):
         train_eva = eval_recall_at_k(dataset.label[split_idx['train']], out[split_idx['train']], args.topk)
         valid_eva = eval_recall_at_k(dataset.label[split_idx['valid']], out[split_idx['valid']], args.topk)
         test_eva = eval_recall_at_k(dataset.label[split_idx['test']], out[split_idx['test']], args.topk)
-        r_20 = eval_recall_at_k(dataset.label[split_idx['test']], out[split_idx['test']], 20)
-        w = eval_w_f1(dataset.label[split_idx['test']], out[split_idx['test']])
-        print(f"r@20:{r_20};w-f1:{w}")
     else:
         # Calculate W-F1 for train, validation, and test sets
         train_eva = eval_w_f1(dataset.label[split_idx['train']], out[split_idx['train']])
         valid_eva = eval_w_f1(dataset.label[split_idx['valid']], out[split_idx['valid']])
         test_eva = eval_w_f1(dataset.label[split_idx['test']], out[split_idx['test']])
-        test_recall10 = eval_recall_at_k(dataset.label[split_idx['test']], out[split_idx['test']], 10)
-        test_recall20 = eval_recall_at_k(dataset.label[split_idx['test']], out[split_idx['test']], 20)
-        print(f"r@10:{test_recall10};r@20:{test_recall20}")
 
     return train_eva, valid_eva, test_eva, valid_loss, out
 
