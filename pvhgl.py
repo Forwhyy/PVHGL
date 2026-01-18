@@ -20,7 +20,6 @@ def one_step_message_passing(args, query, key, value, tau=0.25, return_att=True)
     query = query.permute(1, 0, 2)  # (H, N, M)
     key = key.permute(1, 0, 2)  # (H, N, M)
     value = value.permute(1, 0, 2)
-    # 转置 Key 的最后两个维度
     key_transpose = key.transpose(-1, -2)  # (H, N, M) -> (H, M, N)
     # 计算注意力分数
     attention_scores = torch.matmul(query, key_transpose)
@@ -33,8 +32,8 @@ def one_step_message_passing(args, query, key, value, tau=0.25, return_att=True)
 
     cooccurrence_matrix = cooccurrence_matrix.to_numpy().astype(np.float64)
 
-    # 行求和归一化（针对 NumPy 数组）
-    row_sums = cooccurrence_matrix.sum(axis=1, keepdims=True)  # 注意 axis=1 和 keepdims=True（NumPy参数名是 keepdims）
+    # 归一化（针对 NumPy 数组）
+    row_sums = cooccurrence_matrix.sum(axis=1, keepdims=True)  
     row_sums += 1e-8  # 防止行和为0
     cooccurrence_matrix = cooccurrence_matrix / row_sums  # 每行和为1
 
@@ -45,7 +44,7 @@ def one_step_message_passing(args, query, key, value, tau=0.25, return_att=True)
 
     node_attention_scores = attention_scores[:, :num_nodes, :num_nodes]  # (1, 节点数, 节点数)
     visit_attention_scores = torch.softmax(attention_scores[:, num_nodes:, num_nodes:],dim=-1)  # (1, 节点数, 节点数)
-    # 对节点部分的注意力分数进行归一化
+    # 归一化
     node_attention_scores = torch.softmax(node_attention_scores, dim=-1)  # 归一化到 [0, 1]
 
     # 将共现矩阵与注意力分数相加
@@ -252,6 +251,12 @@ class PVHGL(nn.Module):
         for fc in self.fcs:
             nn.init.xavier_uniform_(fc.weight)
             nn.init.zeros_(fc.bias)
+
+        # dual_encoder 的 reset
+        self.dual_encoder.node_encoder.reset_parameters()
+        self.dual_encoder.node_gate.reset_parameters()
+        self.dual_encoder.edge_encoder.reset_parameters()
+        self.dual_encoder.edge_gate.reset_parameters()
 
     def getadj(self, H):
         # 从 H 中提取非零元素的索引
