@@ -40,7 +40,7 @@ class NCDataset(object):
         split_type: 'random' for random splitting, 'class' for splitting with equal node num per class
         train_prop: The proportion of dataset for train split. Between 0 and 1.
         valid_prop: The proportion of dataset for validation split. Between 0 and 1.
-        label_num_per_class: 每个类别用于训练的节点数？
+        label_num_per_class: 每个类别用于训练的节点数
         """
 
 
