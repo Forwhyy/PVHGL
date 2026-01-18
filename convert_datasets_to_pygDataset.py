@@ -46,7 +46,7 @@ class dataset_Hypergraph(InMemoryDataset):
         
         self.feature_noise = feature_noise
 
-        self._train_percent = train_percent  # 划分数据集的比例？
+        self._train_percent = train_percent  # 划分数据集的比例
 
         #os.path.isdir() 函数的调用，用于检查某个路径是否是一个 目录。
         # 如果 p2raw 是一个有效的目录路径，这个函数会返回 True；如果路径不存在或不是一个目录，则返回 False。
@@ -56,7 +56,7 @@ class dataset_Hypergraph(InMemoryDataset):
             self.p2raw = None
         elif not osp.isdir(p2raw):
             raise ValueError(f'path to raw hypergraph dataset "{p2raw}" does not exist!')
-        # 如果root不是一个目录，就创建一个root的目录出来
+        
         if not osp.isdir(root):# root是存储处理好的数据集的地方
             os.makedirs(root)
             
@@ -65,8 +65,6 @@ class dataset_Hypergraph(InMemoryDataset):
         self.myraw_dir = osp.join(root, self.name, 'raw') # 处理后的原始路径
         # 处理好的数据集的目录：root + 数据集名称 + processed
         self.myprocessed_dir = osp.join(root, self.name, 'processed')# 完全处理好的数据集的路径？
-
-        # 通过 super() 调用了父类的初始化方法
         super(dataset_Hypergraph, self).__init__(osp.join(root, name), transform, pre_transform)
 
         self.data, self.slices = torch.load(self.processed_paths[0])
@@ -114,7 +112,7 @@ class dataset_Hypergraph(InMemoryDataset):
                 tmp_name = self.name
                 tmp_data = load_cornell_dataset(path = self.p2raw,
                     dataset = tmp_name,#我设置的是为 self.name
-                    feature_dim = self.feature_dim,# 100,自己设置的
+                    feature_dim = self.feature_dim,# 自己设置的
                     feature_noise = self.feature_noise,
                     train_percent = self._train_percent)
                     
