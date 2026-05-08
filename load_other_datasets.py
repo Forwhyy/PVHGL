@@ -315,25 +315,17 @@ def load_cornell_dataset(path='../data/raw_data/', dataset = 'mimic_iii',
 
     print(f'Loading hypergraph dataset : {dataset}')
 
-    # # first load node labels
-    # # 读取标签文件
-    # df_labels = pd.read_csv(osp.join(path, dataset, f'node-labels-{dataset}.txt'), names = ['node_label'])
-    # num_nodes = df_labels.shape[0] # 节点数
-    # # 将 df_labels 中的所有数据提取为一个一维的 numpy 数组
-    # labels = df_labels.values.flatten()
-
-    # 1. 加载标签矩阵和记录数据
     labels_matrix_path = os.path.join(path,dataset,"labels_matrix.pkl")
     new_records_path = os.path.join(path,dataset,"new_records_subjects.pkl")
     voc_path = os.path.join(path,dataset,"continue_all_codes_voc.pkl")
 
     # 1. 加载标签矩阵、记录数据和代码词典
     with open(labels_matrix_path, 'rb') as f:
-        labels_matrix = dill.load(f)  # 加载标签矩阵
+        labels_matrix = dill.load(f) 
     with open(new_records_path, 'rb') as f:
-        new_records = dill.load(f)  # 加载去掉最后一次住院记录后的新记录
+        new_records = dill.load(f)  
     with open(voc_path, 'rb') as f:
-        vocs = dill.load(f)  # 加载医疗代码词典
+        vocs = dill.load(f)  
 
     diag_voc = vocs['diag_voc']  # 诊断代码词典
     med_voc = vocs['med_voc']  # 药物代码词典
@@ -345,10 +337,6 @@ def load_cornell_dataset(path='../data/raw_data/', dataset = 'mimic_iii',
     num_pro_codes = len(pro_voc.word2idx)
     num_nodes = num_diag_codes + num_med_codes + num_pro_codes
 
-    print(f"诊断代码数: {num_diag_codes}, 药物代码数: {num_med_codes}, 手术代码数: {num_pro_codes}")
-    print(f"总节点数: {num_nodes}")
-
-    # 转换标签矩阵为 PyTorch 张量
     labels_tensor = torch.tensor(labels_matrix, dtype=torch.float32)
 
     num_patients = labels_matrix.shape[0]
@@ -377,7 +365,6 @@ def load_cornell_dataset(path='../data/raw_data/', dataset = 'mimic_iii',
                 edge_index.append([code, he_id])  # 代码节点到超边
             he_id += 1  # 更新超边 ID
 
-    # 转换边列表为 PyTorch 张量
     edge_index_tensor = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
     print(f"生成的边索引维度: {edge_index_tensor.shape} (2, 边数)")
 
