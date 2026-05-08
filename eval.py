@@ -16,27 +16,18 @@ def eval_recall_at_k(y_true, y_pred, k=10):
     Returns:
         float: 平均 R@k 值。
     """
-    # 将张量转换为 NumPy 格式
+    
     y_true = y_true.detach().cpu().numpy()
-
     y_pred = y_pred.detach().cpu().numpy()
-
-    # 存储每个样本的 R@k
+   
     recall_list = []
-
     for true_labels, pred_logits in zip(y_true, y_pred):
         # 获取前 k 个预测标签的索引
-        top_k_indices = np.argsort(pred_logits)[-k:]  # 按概率从小到大排序，选取后 k 个
-
-        # 计算真实标签与预测标签的交集数量
+        top_k_indices = np.argsort(pred_logits)[-k:] 
         true_positive = np.sum(true_labels[top_k_indices])# 预测对的个数
-
-        # 计算该样本的召回率
         possible_positive = np.sum(true_labels)# 总共有多少个类别
         recall = true_positive / possible_positive if possible_positive > 0 else 0.0
-
         recall_list.append(recall)
-
     # 返回平均召回率
     return np.mean(recall_list)
 
@@ -49,7 +40,6 @@ def eval_w_f1(y_true, y_pred):
     # Convert tensors to numpy arrays
     y_true = y_true.cpu().numpy()
     y_pred = y_pred.cpu().detach().numpy()
-
     # Sort predictions by descending order of scores
     y_pred_sorted = np.argsort(y_pred, axis=-1)[:, ::-1]  # Sort indices by descending order
 
@@ -67,10 +57,8 @@ def eval_w_f1(y_true, y_pred):
 def eval_f1(y_true, y_pred, threshold=0.5, average='micro'):
     y_true = y_true.detach().cpu().numpy()
     y_pred = (y_pred.sigmoid().detach().cpu().numpy() > threshold).astype(int)  # 转换为二进制分类结果
-
     # 计算多标签 F1 分数
     f1 = f1_score(y_true, y_pred, average=average)  # 使用 sklearn 的 F1 计算函数
-
     return f1
 
 
