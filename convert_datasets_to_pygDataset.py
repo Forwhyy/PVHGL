@@ -48,8 +48,7 @@ class dataset_Hypergraph(InMemoryDataset):
 
         self._train_percent = train_percent  # 划分数据集的比例
 
-        #os.path.isdir() 函数的调用，用于检查某个路径是否是一个 目录。
-        # 如果 p2raw 是一个有效的目录路径，这个函数会返回 True；如果路径不存在或不是一个目录，则返回 False。
+       
         if (p2raw is not None) and osp.isdir(p2raw):
             self.p2raw = p2raw
         elif p2raw is None:
@@ -64,7 +63,7 @@ class dataset_Hypergraph(InMemoryDataset):
         self.feature_dim=args.feature_dim
         self.myraw_dir = osp.join(root, self.name, 'raw') # 处理后的原始路径
         # 处理好的数据集的目录：root + 数据集名称 + processed
-        self.myprocessed_dir = osp.join(root, self.name, 'processed')# 完全处理好的数据集的路径？
+        self.myprocessed_dir = osp.join(root, self.name, 'processed')# 完全处理好的数据集的路径
         super(dataset_Hypergraph, self).__init__(osp.join(root, name), transform, pre_transform)
 
         self.data, self.slices = torch.load(self.processed_paths[0])
