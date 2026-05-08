@@ -121,7 +121,6 @@ def load_AllSet_dataset(args, feature_noise=None):
     
     node_feat = torch.cat([node_feat, he_feat], dim=0)# 把节点特征和超边特征按行拼接起来
 
-    # 实例化一个NCDataset对象
     dataset = NCDataset(name)
     # 把前面得到的节点和边的信息都加上
     dataset.graph = {'edge_index_bipart': V2E,
