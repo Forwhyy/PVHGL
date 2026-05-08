@@ -33,14 +33,13 @@ def ConstructH(edge_index_0,num_nodes):
     edge_index = torch.zeros_like(edge_index_0,dtype=edge_index_0.dtype)
     edge_index[0]=edge_index_0[0]-edge_index_0[0].min()
     edge_index[1]=edge_index_0[1]-edge_index_0[1].min()
-    # 创建一个形状为 [num_edges] 的全 1 向量，表示所有边的权重均为 1
     v=torch.ones(edge_index.shape[1])
     # Don't use edge_index[0].max()+1, as some nodes maybe isolated
     num_hyperedges = edge_index[1].max()+1
     H=torch.sparse.FloatTensor(edge_index, v, torch.Size([num_nodes, num_hyperedges]))# (282，315)
     # H 的形状为 [num_nodes, num_hyperedges]，其中：
-    # 行表示节点编号。
-    # 列表示超边编号。
+    # 行表示节点编号
+    # 列表示超边编号
     # 值表示节点和超边之间的连接关系（权重)
     return H
 
