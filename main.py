@@ -86,7 +86,7 @@ def main(args):
         model.reset_parameters()
         optimizer = torch.optim.Adam(model.parameters(), weight_decay=args.weight_decay, lr=args.lr)
         best_val = float('-inf')
-        patience = 10  # 设定早停的耐心值
+        patience = 10 
         counter = 0  # 计数器，记录连续未改进的次数
         best_visit_weights = None
 
@@ -109,7 +109,7 @@ def main(args):
 
                 if result[1] > best_val:
                     best_val = result[1]
-                    counter = 0  # 验证集结果改进时重置计数器
+                    counter = 0  
                     if args.save_model:
                         torch.save(model.state_dict(), args.model_dir + f'{args.dataset}-{args.method}-run{run}.pkl')
                     if args.return_att:
@@ -120,9 +120,9 @@ def main(args):
                         ]
 
                 else:
-                    counter += 1  # 未改进，计数器加1
+                    counter += 1  
 
-                # 打印准确率
+               
                 print(f'Epoch: {epoch:02d}, '
                       f'Loss: {loss:.4f}, '
                       f'Train: {100 * result[0]:.2f}%, '
@@ -132,19 +132,9 @@ def main(args):
             # 检查早停条件
             if counter >= patience:
                 print(f"Early stopping at epoch {epoch:02d}. Best validation accuracy: {100 * best_val:.2f}%")
-                break  # 结束当前运行的训练循环
+                break  
 
         logger.print_statistics(run)
-        # # —— 训练结束后，保存“最优那一次”的 visit_weights ——
-        # if args.return_att and best_visit_weights is not None:
-        #     os.makedirs(args.model_dir, exist_ok=True)
-        #     save_path = os.path.join(
-        #         args.model_dir,
-        #         f'{args.dataset}-{run}-best_visit_weights.pkl'
-        #     )
-        #     with open(save_path, 'wb') as f:
-        #         dill.dump(best_visit_weights, f)
-
     results = logger.print_statistics()
 
 
