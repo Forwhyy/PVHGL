@@ -1,6 +1,5 @@
 import math
 import os
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:21'
 import dill
 import torch
 import numpy as np
@@ -29,32 +28,25 @@ def one_step_message_passing(args, query, key, value, tau=0.25, return_att=True)
 
     with open(args.cooccurrence, "rb") as f:
         cooccurrence_matrix = pd.read_csv(f)
-
     cooccurrence_matrix = cooccurrence_matrix.to_numpy().astype(np.float64)
-
     # 归一化（针对 NumPy 数组）
     row_sums = cooccurrence_matrix.sum(axis=1, keepdims=True)  
-    row_sums += 1e-8  # 防止行和为0
+    row_sums += 1e-8  
     cooccurrence_matrix = cooccurrence_matrix / row_sums  # 每行和为1
-
     cooccurrence_matrix = torch.tensor(cooccurrence_matrix, dtype=torch.float32)
     cooccurrence_matrix = cooccurrence_matrix.unsqueeze(0)
     # 提取 Attention Scores 中节点与节点的部分
     num_nodes = cooccurrence_matrix.size(1)  # 节点数
-
-    node_attention_scores = attention_scores[:, :num_nodes, :num_nodes]  # (1, 节点数, 节点数)
-    visit_attention_scores = torch.softmax(attention_scores[:, num_nodes:, num_nodes:],dim=-1)  # (1, 节点数, 节点数)
+    node_attention_scores = attention_scores[:, :num_nodes, :num_nodes]  
+    visit_attention_scores = torch.softmax(attention_scores[:, num_nodes:, num_nodes:],dim=-1) 
     # 归一化
     node_attention_scores = torch.softmax(node_attention_scores, dim=-1)  # 归一化到 [0, 1]
-
     # 将共现矩阵与注意力分数相加
-    device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")  # 确认设备
+    device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")  
     cooccurrence_matrix = cooccurrence_matrix.to(device)
-
-    weighted_node_attention = node_attention_scores + args.alpha * cooccurrence_matrix  # (1, 节点数, 节点数)
+    weighted_node_attention = node_attention_scores + args.alpha * cooccurrence_matrix 
     # 提取其他部分
-    other_parts = attention_scores[:, num_nodes:, :]  # 取出其他部分
-
+    other_parts = attention_scores[:, num_nodes:, :]  
     # 拼接新张量
     new_attention_scores = torch.cat([
         torch.cat([weighted_node_attention, attention_scores[:, :num_nodes, num_nodes:]], dim=-1),
@@ -88,19 +80,14 @@ class Hypergraph_Transformer(nn.Module):
         self.return_att = return_att
 
     def reset_parameters(self):
-
         nn.init.xavier_uniform_(self.Wk.weight)  # Xavier 初始化
         nn.init.zeros_(self.Wk.bias)  # 偏置初始化为 0
-
         nn.init.xavier_uniform_(self.Wq.weight)
         nn.init.zeros_(self.Wq.bias)
-
         nn.init.xavier_uniform_(self.Wv.weight)
         nn.init.zeros_(self.Wv.bias)
-
         nn.init.xavier_uniform_(self.Wo.weight)
         nn.init.zeros_(self.Wo.bias)
-
 
     def forward(self, args, z, adjs, tau):
         # 获取 batch和节点数
@@ -160,7 +147,6 @@ class DualDynamicEncoder(nn.Module):
 
     def forward(self, H,zx,zy):
         # 节点特征编码 --------------------------------------------------
-        # 输入H: (N, E), 稀疏矩阵
         node_feat = self.node_encoder(H)  # (N, D)
         node_gate = torch.sigmoid(self.node_gate(H))  # (N, 1)
         # node_gate = torch.softmax(self.node_gate(H),dim=0)  # (N, 1)
@@ -199,22 +185,14 @@ class PVHGL(nn.Module):
     def __init__(self,num_tokens, num_nodes, in_channels, hidden_channels, out_channels, num_hes, num_layers=2, num_heads=4, dropout=0.0,
                  use_bn=True,
                  use_residual=True, use_act=False, use_jk=False,  return_att=True):
-        '''
-        :超边数量
-        use_bn: 是否使用归一化。
-        use_residual: 是否使用残差连接。
-        use_act: 是否应用激活函数。
-        use_jk: 是否使用跳跃连接（Jumping Knowledge）
-        '''
         super(PVHGL, self).__init__()
-
         self.convs = nn.ModuleList()
         # self.gcnlayer = GraphConvolutionLayer(hidden_channels, hidden_channels)
         self.fcs = nn.ModuleList()
         self.classfier=nn.Softmax(dim=-1)
-        self.fcs.append(nn.Linear(in_channels, hidden_channels))# 添加一个线性层
+        self.fcs.append(nn.Linear(in_channels, hidden_channels))
         self.bns = nn.ModuleList()
-        self.bns.append(nn.LayerNorm(hidden_channels))#添加一个LN层
+        self.bns.append(nn.LayerNorm(hidden_channels))
         for i in range(num_layers):
             self.convs.append(
                 Hypergraph_Transformer(hidden_channels, hidden_channels, num_heads=num_heads,
@@ -245,9 +223,9 @@ class PVHGL(nn.Module):
             conv.reset_parameters()
         for bn in self.bns:
             if hasattr(bn, 'weight') and bn.weight is not None:
-                nn.init.ones_(bn.weight)  # 将 weight 初始化为全1
+                nn.init.ones_(bn.weight) 
             if hasattr(bn, 'bias') and bn.bias is not None:
-                nn.init.zeros_(bn.bias)  # 将 bias 初始化为全0
+                nn.init.zeros_(bn.bias)
         for fc in self.fcs:
             nn.init.xavier_uniform_(fc.weight)
             nn.init.zeros_(fc.bias)
@@ -301,22 +279,21 @@ class PVHGL(nn.Module):
 
     def forward(self, args, x, adjs, H, tau=1.0):
 
-        layer_ = []# 用来保存每一层的输出
+        layer_ = []
         att_map=[]
-        # 经过第一层的线性变化
         z = self.fcs[0](x)
         num_hyperedges = H.shape[1]
-        zx = z[num_hyperedges:]  # 节点嵌入部分 (节点数, hidden_dim)
-        zy = z.squeeze(0)[-num_hyperedges:] #超边嵌入部分（超边数，维度）
-        node_pe, edge_pe = self.dual_encoder(H,zx,zy)  # 节点位置编码和超边位置编码
+        zx = z[num_hyperedges:] 
+        zy = z.squeeze(0)[-num_hyperedges:] 
+        node_pe, edge_pe = self.dual_encoder(H,zx,zy)  
 
         # 判断位置编码的组合情况，并拼接相应的嵌入
         if 'CODE' in args.encode and 'VISIT' not in args.encode:
-            z = torch.cat((node_pe, zy), dim=0).unsqueeze(0)  # 节点位置编码 + 原始超边嵌入
+            z = torch.cat((node_pe, zy), dim=0).unsqueeze(0) 
         elif 'VISIT' in args.encode and 'CODE' not in args.encode:
-            z = torch.cat((zx, edge_pe), dim=0).unsqueeze(0)  # 原始节点嵌入 + 超边位置编码
+            z = torch.cat((zx, edge_pe), dim=0).unsqueeze(0) 
         elif 'CODE' in args.encode and 'VISIT' in args.encode:
-            z = torch.cat((node_pe, edge_pe), dim=0).unsqueeze(0)  # 节点位置编码 + 超边位置编码
+            z = torch.cat((node_pe, edge_pe), dim=0).unsqueeze(0)  
         else:
             z = z.unsqueeze(0)  # 不使用位置编码，直接使用原始嵌入
 
@@ -324,8 +301,7 @@ class PVHGL(nn.Module):
             z = self.bns[0](z)
         z = self.activation(z)
         z = F.dropout(z, p=self.dropout, training=self.training)
-        layer_.append(z)# 得到了初步的加了位置编码的节点特征和超边特征
-
+        layer_.append(z)
         for i, conv in enumerate(self.convs):
             if self.return_att:
                 z, att = conv(args, z, adjs, tau)
@@ -342,13 +318,13 @@ class PVHGL(nn.Module):
             layer_.append(z)# 把每一层卷积后的全部特征矩阵都保存在里面
 
         if self.use_jk: # use jk connection for each layer
-            z = torch.cat(layer_, dim=-1)# 按特征的维度拼接(597,4*hidden)
+            z = torch.cat(layer_, dim=-1)
 
         num_hyperedges = H.shape[1]
-        code_embeddings = z.squeeze(0)[num_hyperedges:]  # 超边嵌入部分 (num_hyperedges, hidden_dim)
-        hyperedge_embeddings = z.squeeze(0)[-num_hyperedges:]  # 超边嵌入部分 (num_hyperedges, hidden_dim)
+        code_embeddings = z.squeeze(0)[num_hyperedges:]  
+        hyperedge_embeddings = z.squeeze(0)[-num_hyperedges:] 
         hidden_dim = hyperedge_embeddings.shape[-1]
-        device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")  # 确认设备
+        device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu") 
 
         attn_layer = VisitAttention(hidden_dim).to(device)
         # 根据 record_lengths 计算每个患者的嵌入
