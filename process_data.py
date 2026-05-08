@@ -20,8 +20,6 @@ def med_process(med_file):
     med_pd['ICUSTAY_ID'] = med_pd['ICUSTAY_ID'].astype('int64')
     med_pd['STARTDATE'] = pd.to_datetime(med_pd['STARTDATE'], format='%Y-%m-%d %H:%M:%S')
     med_pd.sort_values(by=['SUBJECT_ID', 'HADM_ID', 'ICUSTAY_ID', 'STARTDATE'], inplace=True)
-    # 重新设置数据框的索引，并将原索引丢弃（drop=True）。
-    # 这样可以确保数据框索引为连续的整数值（0, 1, 2,...），便于后续的行访问和操作
     med_pd = med_pd.reset_index(drop=True)
 
     med_pd = med_pd.drop(columns=['ICUSTAY_ID'])
