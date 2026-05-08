@@ -26,14 +26,11 @@ def rand_train_test_idx(label_matrix, train_prop=0.5, valid_prop=0.25, ignore_ne
            seed: 随机种子，用于保证划分一致性。
 
        返回:
-           train_idx, valid_idx, test_idx: 分别为训练集、验证集和测试集的索引。
+           train_idx, valid_idx, test_idx
        """
 
-
-    # 获取患者的总数（标签矩阵的行数）
     num_patients = label_matrix.shape[0]
 
-    # 设置随机种子
     # np.random.seed(2025)
 
     # 随机排列患者索引
